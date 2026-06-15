@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VEERA | Command Center</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Leaflet for Map -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <style>
+        body { background-color: #0d0f12; color: #e2e8f0; font-family: 'Inter', sans-serif; }
+        .glass-panel { background: rgba(30, 34, 42, 0.7); backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.05); }
+        .pulse-red { animation: pulse-shadow 2s infinite; border-color: #ef4444; }
+        @keyframes pulse-shadow {
+            0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
+            70% { box-shadow: 0 0 0 15px rgba(239, 68, 68, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+        }
+        #map { height: 100%; width: 100%; border-radius: 0.5rem; }
+    </style>
+</head>
+<body class="h-screen flex flex-col overflow-hidden">
+    <!-- Navbar -->
+    <header class="glass-panel p-4 flex justify-between items-center border-b border-gray-800 z-10">
+        <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-full bg-red-500 flex items-center justify-center">
+                <i class="fa-solid fa-shield-halved text-white"></i>
+            </div>
+            <h1 class="text-xl font-black tracking-widest text-white">VEERA <span class="text-gray-500 font-light">COMMAND</span></h1>
+        </div>
+        <div class="flex gap-4 text-sm">
+            <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-green-500"></span> System Online</div>
+            <div class="flex items-center gap-2"><span id="active-sos-count" class="text-red-500 font-bold">0</span> Active Alerts</div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-1 flex overflow-hidden">
+        <!-- Sidebar: Victim List -->
+        <aside class="w-1/3 glass-panel border-r border-gray-800 p-4 flex flex-col overflow-y-auto" id="victim-list">
+            <h2 class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-4">Monitored Users</h2>
+            <!-- Cards go here -->
+        </aside>
+
+        <!-- Right Side: Map & Details -->
+        <section class="w-2/3 flex flex-col relative p-4 gap-4">
+            <!-- Map Container -->
+            <div class="flex-1 glass-panel rounded-xl p-1 relative overflow-hidden">
+                <div id="map"></div>
+            </div>
+            <!-- Live Data Log -->
+            <div class="h-64 glass-panel rounded-xl p-4 flex flex-col">
+                <h3 class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Live Incident Log</h3>
+                <div id="logs" class="flex-1 overflow-y-auto font-mono text-xs text-gray-400 space-y-1">
+                    <div>[SYSTEM] Waiting for incoming data...</div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
+        const victimList = document.getElementById('victim-list');
+        const logs = document.getElementById('logs');
+        const countEl = document.getElementById('active-sos-count');
+        const alertsMap = new Map();
+        const markers = new Map();
+        const paths = new Map();
+        const polylines = new Map();
+        let trackedUid = null;
+
+        function toggleTrack(uid) {
+            if (trackedUid === uid) {
+                trackedUid = null;
+            } else {
+                trackedUid = uid;
+                const data = alertsMap.get(uid);
+                if (data) map.setView([data.lat, data.lng], 16);
+            }
+            updateUI();
+        }
+
+        // Initialize Map
+        const map = L.map('map').setView([20.5937, 78.9629], 5); // Default India
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+            attribution: '© OpenStreetMap contributors © CARTO'
+        }).addTo(map);
+
+        const customIconRed = L.divIcon({ className: 'bg-red-500 w-4 h-4 rounded-full border-2 border-white pulse-red', iconSize: [16, 16] });
+        const customIconGreen = L.divIcon({ className: 'bg-green-500 w-4 h-4 rounded-full border-2 border-white', iconSize: [16, 16] });
+
+        function addLog(msg, isAlert = false) {
+            const time = new Date().toLocaleTimeString();
+            const div = document.createElement('div');
+            div.innerHTML = `<span class="text-gray-600">[${time}]</span> <span class="${isAlert ? 'text-red-400 font-bold' : ''}">${msg}</span>`;
+            logs.insertBefore(div, logs.firstChild);
+        }
+
+        function updateUI(fitMap = false) {
+            victimList.innerHTML = '<h2 class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-4">Monitored Users</h2>';
+            let sosCount = 0;
+
+            alertsMap.forEach((data, uid) => {
+                if (data.isSosActive) sosCount++;
+
+                // Update List
+                const card = document.createElement('div');
+                card.className = `p-4 mb-3 rounded-lg border ${data.isSosActive ? 'bg-red-900/20 border-red-500/50 pulse-red' : 'bg-gray-800/30 border-gray-700'}`;
+                card.innerHTML = `
+                    <div class="flex justify-between items-start mb-2">
+                        <div class="font-bold text-lg">${data.name || 'Unknown User'}</div>
+                        <div class="flex gap-2 items-center">
+                            <button onclick="toggleTrack('${uid}')" class="px-2 py-1 text-[10px] rounded uppercase font-bold tracking-wider ${trackedUid === uid ? 'bg-blue-600 text-white' : 'bg-gray-700 hover:bg-gray-600 text-gray-300'} transition-colors">
+                                <i class="fa-solid fa-crosshairs"></i> ${trackedUid === uid ? 'TRACKING' : 'TRACK'}
+                            </button>
+                            <span class="px-2 py-1 text-[10px] rounded uppercase font-bold tracking-wider ${data.isSosActive ? 'bg-red-500 text-white' : 'bg-green-500/20 text-green-400'}">${data.isSosActive ? 'SOS ACTIVE' : 'SAFE'}</span>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2 text-xs text-gray-400">
+                        <div><i class="fa-solid fa-battery-half"></i> ${data.battery}%</div>
+                        <div><i class="fa-solid fa-location-dot"></i> ${data.lat.toFixed(4)}, ${data.lng.toFixed(4)}</div>
+                        <div class="col-span-2 mt-2">
+                            <a href="${data.videoUrl || '#'}" target="_blank" class="text-blue-400 hover:text-blue-300 ${!data.videoUrl ? 'opacity-50 pointer-events-none' : ''}"><i class="fa-solid fa-video"></i> View Cloud Recording</a>
+                        </div>
+                    </div>
+                `;
+                victimList.appendChild(card);
+
+                // Update Map
+                if (markers.has(uid)) {
+                    const marker = markers.get(uid);
+                    marker.setLatLng([data.lat, data.lng]);
+                    marker.setIcon(data.isSosActive ? customIconRed : customIconGreen);
+                } else {
+                    const marker = L.marker([data.lat, data.lng], { icon: data.isSosActive ? customIconRed : customIconGreen }).addTo(map);
+                    marker.bindPopup(`<b>${data.name}</b><br/>${data.isSosActive ? 'SOS ACTIVE' : 'Safe'}`);
+                    markers.set(uid, marker);
+                }
+            });
+
+            countEl.innerText = sosCount;
+
+            // Fit map to markers if we have any
+            if (fitMap && markers.size > 0) {
+                const group = new L.featureGroup(Array.from(markers.values()));
+                map.fitBounds(group.getBounds().pad(0.1));
+            }
+        }
+
+        socket.on('initial_data', (alertsArray) => {
+            alertsArray.forEach(data => {
+                alertsMap.set(data.uid, data);
+                if (!paths.has(data.uid)) paths.set(data.uid, [[data.lat, data.lng]]);
+            });
+            updateUI(true);
+            addLog(`Loaded ${alertsArray.length} active sessions.`);
+        });
+
+        socket.on('location_update', (data) => {
+            const isNewSOS = !alertsMap.has(data.uid) || (!alertsMap.get(data.uid).isSosActive && data.isSosActive);
+            const isNewMarker = !markers.has(data.uid);
+            alertsMap.set(data.uid, data);
+            
+            // Path Tracing Logic
+            const latLng = [data.lat, data.lng];
+            if (!paths.has(data.uid)) {
+                paths.set(data.uid, []);
+            }
+            paths.get(data.uid).push(latLng);
+
+            // Draw or Update Line
+            if (!polylines.has(data.uid)) {
+                const line = L.polyline(paths.get(data.uid), {color: '#ef4444', weight: 4, opacity: 0.7, dashArray: '10, 10'}).addTo(map);
+                polylines.set(data.uid, line);
+            } else {
+                polylines.get(data.uid).setLatLngs(paths.get(data.uid));
+            }
+
+            updateUI(isNewMarker);
+            
+            if (trackedUid === data.uid) {
+                map.setView([data.lat, data.lng]);
+            }
+            
+            if (isNewSOS) {
+                addLog(`CRITICAL: SOS triggered by ${data.name || data.uid}`, true);
+            } else {
+                addLog(`Location updated for ${data.name || data.uid} (Bat: ${data.battery}%)`);
+            }
+        });
+    </script>
+</body>
+</html>

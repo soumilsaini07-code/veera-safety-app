@@ -12,7 +12,8 @@ import '../core/theme.dart';
 import 'package:flutter_ringtone_player/flutter_ringtone_player.dart';
 
 class JourneyScreen extends StatefulWidget {
-  const JourneyScreen({super.key});
+  final void Function({bool silent}) triggerSOS;
+  const JourneyScreen({super.key, required this.triggerSOS});
 
   @override
   State<JourneyScreen> createState() => _JourneyScreenState();
@@ -34,6 +35,7 @@ class _JourneyScreenState extends State<JourneyScreen> {
   final _destinationController = TextEditingController();
   List<String> _suggestions = [];
   Timer? _debounce;
+  Timer? _etaTimer;
 
   @override
   void initState() {
@@ -43,6 +45,7 @@ class _JourneyScreenState extends State<JourneyScreen> {
 
   @override
   void dispose() {
+    _etaTimer?.cancel();
     _debounce?.cancel();
     _destinationController.dispose();
     super.dispose();
@@ -87,20 +90,32 @@ class _JourneyScreenState extends State<JourneyScreen> {
 
   void _onGeofenceDeviation() {
     FlutterRingtonePlayer().playNotification();
+    
+    // Auto-SOS if not answered
+    Timer? autoSosTimer = Timer(const Duration(seconds: 15), () {
+      if (mounted && Navigator.canPop(context)) {
+        Navigator.pop(context); // Close dialog
+        widget.triggerSOS(silent: true);
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('SILENT SOS TRIGGERED DUE TO GEOFENCE DEVIATION')));
+      }
+    });
+
     if (mounted) {
       showDialog(
         context: context,
+        barrierDismissible: false,
         builder: (context) => AlertDialog(
           backgroundColor: AppTheme.errorContainer,
           title: const Text('GEOFENCE ALERT', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-          content: const Text('DEVIATION > 500m DETECTED. CONFIRM SAFETY.', style: TextStyle(color: Colors.white)),
+          content: const Text('DEVIATION DETECTED.\n\nIF NOT CONFIRMED SAFE IN 15s, SILENT SOS WILL ACTIVATE.', style: TextStyle(color: Colors.white)),
           actions: [
             TextButton(
               onPressed: () {
+                autoSosTimer.cancel();
                 FlutterRingtonePlayer().stop();
                 Navigator.pop(context);
               },
-              child: const Text('I AM SAFE', style: TextStyle(color: Color(0xFFFF2D78), fontWeight: FontWeight.bold)),
+              child: const Text('I AM SAFE', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
             ),
           ],
         ),
@@ -177,6 +192,15 @@ class _JourneyScreenState extends State<JourneyScreen> {
       _geofenceService.startRouteGeofence(route!, 200, _onGeofenceDeviation);
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('SAFE ZONE ENGAGED. DEVIATION THRESHOLD 200M.')));
       
+      // 4. Start Dead Man's ETA Timer (20 mins demo)
+      _etaTimer?.cancel();
+      _etaTimer = Timer(const Duration(minutes: 20), () {
+        if (_isJourneyActive && mounted) {
+          widget.triggerSOS(silent: true);
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('ETA EXPIRED. SILENT SOS TRIGGERED.')));
+        }
+      });
+      
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to start journey: $e')));
@@ -188,6 +212,7 @@ class _JourneyScreenState extends State<JourneyScreen> {
     if (_activeJourneyId != null) {
       await _journeyService.endJourney(_activeJourneyId!);
       _geofenceService.stopGeofence();
+      _etaTimer?.cancel();
       setState(() {
         _isJourneyActive = false;
         _activeJourneyId = null;

@@ -5,7 +5,7 @@
 ## 1. Project Overview
 - **Name:** Veera (Previously Aura Guard / Silent Security System)
 - **Framework:** Flutter (Dart)
-- **Backend:** Firebase (Authentication + Realtime Database)
+- **Backend:** EC2 Node.js/Socket.IO Server (Live tracking & Evidence Uploads) + Firebase (Authentication & RTDB ONLY)
 - **Primary Use Case:** Personal safety application designed for hackathons.
 - **Core Philosophy:** The app functions as a "Silent Guardian" with a highly premium, dark, "intelligence agency" aesthetic. 
 
@@ -28,13 +28,16 @@ The app uses a strict, custom design system rather than standard Material widget
 - **Voice Trigger:** Uses `speech_to_text`. Listens continuously. If the word "help" is detected 3 times, it triggers the SOS protocol.
 - **Shake to SOS:** Uses `sensors_plus` (accelerometer). Rapid movement triggers the SOS protocol.
 - **Fake Call (`lib/screens/fake_call_screen.dart`):** Uses `flutter_ringtone_player` and `vibration`. Configured with `asAlarm: true` and `volume: 1.0` to force the phone to ring loudly and vibrate even if it is set to silent/vibrate.
+- **Stealth Mode (Dead App Mode):** (`lib/screens/stealth_mode_screen.dart`). Screen turns completely black mimicking a dead phone while silently recording and tracking in the background. Tap 5 times to exit.
+- **Journey Geofencing (Dead Man's Switch):** Auto-SOS triggers if the user deviates >200m and doesn't confirm safety in 15s, or if the 20-min ETA expires without ending the trip safely.
 
-### C. SOS Protocol Execution (`lib/services/sos_service.dart` or similar)
+### C. SOS Protocol Execution (`lib/services/evidence_service.dart`)
 When SOS is triggered, the app attempts to:
-1. Capture Audio using the `record` package.
-2. Capture Video using the `camera` package.
-3. Save the media securely to the device using `gallery_saver_plus`.
-4. (Optional/Future) Send SMS/Location to emergency contacts.
+1. Start `LiveTrackingService` to ping GPS/Battery to the EC2 server every 10 seconds.
+2. Capture Audio & Video in 3-second chunks.
+3. Every 3 seconds, instantly upload the chunk directly to the EC2 `/api/upload` endpoint using `http.MultipartRequest` (Anti-Destruction mechanism).
+4. Save the media securely to the local gallery as a backup using `gallery_saver_plus`.
+5. Send SMS/WhatsApp location links to emergency contacts without blocking UI.
 
 ### D. Map & Geofencing (`lib/screens/journey_screen.dart`)
 - Uses `google_maps_flutter` and `flutter_polyline_points`.

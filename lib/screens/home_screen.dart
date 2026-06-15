@@ -18,11 +18,13 @@ import '../services/realtime_database_service.dart';
 import '../services/places_service.dart';
 import '../services/evidence_service.dart';
 import '../services/voice_service.dart';
+import '../services/live_tracking_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'contacts_screen.dart';
 import 'journey_screen.dart';
 import 'settings_screen.dart';
 import 'fake_call_screen.dart';
+import 'stealth_mode_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -35,6 +37,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   late SafetyService _safetyService;
   late EvidenceService _evidenceService;
   late VoiceService _voiceService;
+  late LiveTrackingService _liveTrackingService;
   
   bool _isSOSActive = false;
   Timer? _locationPingTimer;
@@ -58,11 +61,13 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
-    _safetyService = SafetyService(onSOS: _triggerSOS);
+    _safetyService = SafetyService(onSOS: () => _triggerSOS());
     _safetyService.init();
     
     _evidenceService = EvidenceService();
     _evidenceService.initCamera();
+    
+    _liveTrackingService = LiveTrackingService();
     
     _voiceService = VoiceService();
     _checkVoiceSettings();
@@ -126,7 +131,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     final prefs = await SharedPreferences.getInstance();
     bool voiceEnabled = prefs.getBool('voiceTrigger') ?? false;
     if (voiceEnabled) {
-      _voiceService.startListening(_triggerSOS);
+      _voiceService.startListening(() => _triggerSOS());
     } else {
       _voiceService.stopListening();
     }
@@ -192,14 +197,17 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     }
   }
 
-  void _triggerSOS() async {
+  void _triggerSOS({bool silent = false}) async {
     if (_isSOSActive) return;
     setState(() => _isSOSActive = true);
     
-    FlutterRingtonePlayer().playAlarm(looping: true);
+    if (!silent) {
+      FlutterRingtonePlayer().playAlarm(looping: true);
+    }
     
     // Start recording without blocking the UI or message sending
     _evidenceService.startRecording();
+    _liveTrackingService.startTracking();
 
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final userId = authProvider.firebaseUser?.uid;
@@ -241,6 +249,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     setState(() => _isSOSActive = false);
     FlutterRingtonePlayer().stop();
     _locationPingTimer?.cancel();
+    _liveTrackingService.stopTracking();
     _holdController.reset();
 
     ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Stopping SOS & Saving Evidence...')));
@@ -531,7 +540,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                   children: [
                     Expanded(
                       child: OutlinedButton.icon(
-                        onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const JourneyScreen())),
+                        onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => JourneyScreen(triggerSOS: _triggerSOS))),
                         icon: const Icon(Icons.track_changes),
                         label: const Text('JOURNEY'),
                         style: OutlinedButton.styleFrom(
@@ -558,11 +567,28 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                     ),
                   ],
                 ),
+                const SizedBox(height: 16),
+                // Stealth Mode Button
+                OutlinedButton.icon(
+                  onPressed: () {
+                    _triggerSOS(silent: true);
+                    Navigator.push(context, MaterialPageRoute(builder: (context) => StealthModeScreen(onExit: _stopSOS)));
+                  },
+                  icon: const Icon(Icons.visibility_off),
+                  label: const Text('STEALTH MODE'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: Colors.white,
+                    backgroundColor: Colors.black54,
+                    side: const BorderSide(color: Colors.white30, width: 1),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(999)),
+                    minimumSize: const Size(double.infinity, 56),
+                  ),
+                ),
                 const SizedBox(height: 32),
                 
                 // Glowing SOS Button
                 GestureDetector(
-                  onLongPress: _triggerSOS,
+                  onLongPress: () => _triggerSOS(),
                   child: Container(
                     width: 120,
                     height: 120,

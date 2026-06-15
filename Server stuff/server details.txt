@@ -1,0 +1,45 @@
+nstance ID
+i-08d0bf2f4fae4f796
+Public IPv4 address
+
+3.111.147.106 | open address 
+Private IPv4 addresses
+172.31.36.237
+IPv6 address
+–
+Instance state
+Running
+Public DNS
+
+ec2-3-111-147-106.ap-south-1.compute.amazonaws.com | open address 
+Hostname type
+IP name: ip-172-31-36-237.ap-south-1.compute.internal
+Private IP DNS name (IPv4 only)
+ip-172-31-36-237.ap-south-1.compute.internal
+Answer private resource DNS name
+IPv4 (A)
+Instance type
+t3.micro
+Elastic IP addresses
+–
+Auto-assigned IP address
+
+3.111.147.106 [Public IP]
+VPC ID
+vpc-0c1e7168c01430306 
+AWS Compute Optimizer finding
+Opt-in to AWS Compute Optimizer for recommendations.
+|
+Learn more 
+IAM role
+–
+Subnet ID
+subnet-064bc056699e0838a 
+Auto Scaling Group name
+–
+IMDSv2
+Required
+Instance ARN
+arn:aws:ec2:ap-south-1:208166435147:instance/i-08d0bf2f4fae4f796
+Managed
+false
