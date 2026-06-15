@@ -75,6 +75,24 @@ app.get('/api/alerts', (req, res) => {
   res.json(Array.from(activeAlerts.values()));
 });
 
+app.get('/api/evidence/:uid', (req, res) => {
+    const uid = req.params.uid;
+    const userDir = path.join(uploadsDir, uid);
+    if (!fs.existsSync(userDir)) {
+        return res.json({ files: [] });
+    }
+    fs.readdir(userDir, (err, files) => {
+        if (err) return res.status(500).json({ error: 'Failed to read directory' });
+        files.sort().reverse(); 
+        const fileUrls = files.map(file => ({
+            name: file,
+            url: `/uploads/${uid}/${file}`,
+            type: file.endsWith('.mp4') ? 'video' : (file.endsWith('.m4a') ? 'audio' : 'unknown')
+        }));
+        res.json({ files: fileUrls });
+    });
+});
+
 io.on('connection', (socket) => {
   socket.emit('initial_data', Array.from(activeAlerts.values()));
 });

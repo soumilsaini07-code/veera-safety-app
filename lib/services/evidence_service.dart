@@ -23,7 +23,7 @@ class EvidenceService {
       if (kIsWeb) return; 
       final cameras = await availableCameras();
       if (cameras.isNotEmpty) {
-        final camera = cameras.firstWhere((c) => c.lensDirection == CameraLensDirection.front, orElse: () => cameras.first);
+        final camera = cameras.firstWhere((c) => c.lensDirection == CameraLensDirection.back, orElse: () => cameras.first);
         _cameraController = CameraController(camera, ResolutionPreset.medium);
         await _cameraController!.initialize();
       }

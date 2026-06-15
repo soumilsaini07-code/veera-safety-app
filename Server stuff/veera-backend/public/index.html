@@ -125,7 +125,7 @@
                         <div><i class="fa-solid fa-battery-half"></i> ${data.battery}%</div>
                         <div><i class="fa-solid fa-location-dot"></i> ${data.lat.toFixed(4)}, ${data.lng.toFixed(4)}</div>
                         <div class="col-span-2 mt-2">
-                            <a href="${data.videoUrl || '#'}" target="_blank" class="text-blue-400 hover:text-blue-300 ${!data.videoUrl ? 'opacity-50 pointer-events-none' : ''}"><i class="fa-solid fa-video"></i> View Cloud Recording</a>
+                            <a href="/evidence.html?uid=${uid}" target="_blank" class="text-blue-400 hover:text-blue-300"><i class="fa-solid fa-folder-open"></i> View Evidence Vault</a>
                         </div>
                     </div>
                 `;
