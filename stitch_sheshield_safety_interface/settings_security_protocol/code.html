@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Circle &amp; Settings</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "inverse-primary": "#bc0051",
+                        "outline-variant": "#5b3f44",
+                        "surface-container-low": "#1b1b1b",
+                        "surface-container": "#1f1f1f",
+                        "inverse-surface": "#e2e2e2",
+                        "tertiary-fixed": "#e4e2e2",
+                        "on-secondary-fixed-variant": "#454747",
+                        "on-tertiary-container": "#292a2a",
+                        "surface-variant": "#353535",
+                        "on-secondary-container": "#b4b5b5",
+                        "on-background": "#e2e2e2",
+                        "on-primary-fixed": "#3f0017",
+                        "error": "#ffb4ab",
+                        "tertiary-fixed-dim": "#c8c6c6",
+                        "on-error-container": "#ffdad6",
+                        "background": "#131313",
+                        "tertiary": "#c8c6c6",
+                        "surface-container-high": "#2a2a2a",
+                        "inverse-on-surface": "#303030",
+                        "outline": "#ab888e",
+                        "secondary-fixed": "#e2e2e2",
+                        "on-tertiary": "#303030",
+                        "surface-tint": "#ffb1c0",
+                        "primary-fixed-dim": "#ffb1c0",
+                        "surface": "#131313",
+                        "on-tertiary-fixed": "#1b1c1c",
+                        "surface-container-highest": "#353535",
+                        "on-primary-fixed-variant": "#90003d",
+                        "on-surface-variant": "#e4bdc3",
+                        "on-secondary-fixed": "#1a1c1c",
+                        "surface-container-lowest": "#0e0e0e",
+                        "primary-fixed": "#ffd9df",
+                        "primary": "#ffb1c0",
+                        "surface-dim": "#131313",
+                        "secondary-container": "#454747",
+                        "on-primary-container": "#5a0023",
+                        "on-error": "#690005",
+                        "primary-container": "#ff4c83",
+                        "on-secondary": "#2f3131",
+                        "on-primary": "#660029",
+                        "surface-bright": "#393939",
+                        "tertiary-container": "#919090",
+                        "on-surface": "#e2e2e2",
+                        "error-container": "#93000a",
+                        "secondary": "#c6c6c7",
+                        "secondary-fixed-dim": "#c6c6c7",
+                        "on-tertiary-fixed-variant": "#474747"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "stack-md": "16px",
+                        "stack-sm": "8px",
+                        "edge-margin-desktop": "48px",
+                        "gutter": "16px",
+                        "unit": "4px",
+                        "touch-target-min": "56px",
+                        "edge-margin-mobile": "24px",
+                        "stack-lg": "32px"
+                    },
+                    "fontFamily": {
+                        "display-lg-mobile": ["Sora"],
+                        "body-lg": ["Sora"],
+                        "label-bold": ["Sora"],
+                        "label-sm": ["Sora"],
+                        "body-md": ["Sora"],
+                        "display-lg": ["Sora"],
+                        "headline-lg": ["Sora"],
+                        "headline-md": ["Sora"]
+                    },
+                    "fontSize": {
+                        "display-lg-mobile": ["32px", { "lineHeight": "40px", "letterSpacing": "0.02em", "fontWeight": "800" }],
+                        "body-lg": ["18px", { "lineHeight": "28px", "letterSpacing": "0.03em", "fontWeight": "400" }],
+                        "label-bold": ["14px", { "lineHeight": "20px", "letterSpacing": "0.05em", "fontWeight": "700" }],
+                        "label-sm": ["12px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600" }],
+                        "body-md": ["16px", { "lineHeight": "24px", "letterSpacing": "0.03em", "fontWeight": "400" }],
+                        "display-lg": ["48px", { "lineHeight": "56px", "letterSpacing": "0.02em", "fontWeight": "800" }],
+                        "headline-lg": ["32px", { "lineHeight": "40px", "letterSpacing": "0.01em", "fontWeight": "700" }],
+                        "headline-md": ["24px", { "lineHeight": "32px", "letterSpacing": "0.01em", "fontWeight": "700" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body { background-color: #000000; color: #e2e2e2; } /* Obsidian Black base */
+        .technical-border { border: 2px solid #4A4A4A; } /* Slate Grey */
+        .technical-border-thick { border: 4px solid #4A4A4A; }
+        .trigger-bg { background-color: #FF2D78; color: #000000; } /* Hazard Magenta */
+        .status-active { background-color: #FF2D78; color: #000000; }
+        .status-standby { background-color: #4A4A4A; color: #FFFFFF; }
+        
+        /* Custom Toggle Switch for Technical Brutalism */
+        .tech-toggle-input:checked + .tech-toggle-bg {
+            background-color: #FF2D78;
+            border-color: #FF2D78;
+        }
+        .tech-toggle-input:checked + .tech-toggle-bg .tech-toggle-knob {
+            transform: translateX(100%);
+            background-color: #000000;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="font-body-md antialiased min-h-screen flex flex-col pb-[72px] md:pb-0">
+<!-- TopAppBar (Settings Context) -->
+<header class="bg-background text-primary font-headline-md text-headline-md uppercase tracking-widest full-width top-0 border-b-2 border-outline-variant flat no shadows transition-colors duration-100 active:bg-primary-container fixed left-0 w-full z-50 flex justify-between items-center px-edge-margin-mobile h-touch-target-min">
+<div class="flex items-center gap-gutter">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">text_rotate_vertical</span>
+<span class="font-display-lg-mobile text-display-lg-mobile font-black tracking-tighter">SENTINEL</span>
+</div>
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">settings</span>
+</header>
+<!-- Main Content Canvas -->
+<main class="flex-grow pt-[56px] px-edge-margin-mobile md:px-edge-margin-desktop py-stack-lg max-w-7xl mx-auto w-full grid grid-cols-1 md:grid-cols-12 gap-stack-lg">
+<!-- Center/Focus Area (Settings & Circle) -->
+<div class="md:col-span-8 md:col-start-3 flex flex-col gap-stack-lg">
+<!-- Page Title -->
+<div class="mb-stack-md">
+<h1 class="font-display-lg-mobile text-display-lg-mobile md:font-display-lg md:text-display-lg uppercase text-on-background">Configuration</h1>
+<p class="font-body-lg text-body-lg text-secondary uppercase tracking-widest mt-unit">Circle &amp; Systems Settings</p>
+</div>
+<!-- Trusted Contacts List (Technical Layout) -->
+<section class="flex flex-col gap-stack-sm">
+<h2 class="font-headline-md text-headline-md uppercase text-primary border-b-2 border-outline-variant pb-unit mb-stack-sm">Trusted Circle</h2>
+<!-- Contact Row 1 -->
+<div class="flex items-center justify-between p-stack-md bg-surface-container border-b border-outline-variant hover:bg-surface-variant transition-colors min-h-[72px]">
+<div class="flex items-center gap-stack-md">
+<img alt="Avatar of a technical operator with headset, high contrast dark environment, vigilant mood" class="w-[48px] h-[48px] object-cover grayscale border-2 border-outline" data-alt="A striking portrait of a technical operator wearing a tactical headset, set against an obsidian black background. The lighting is harsh and high-contrast, emphasizing sharp facial features and creating a vigilant, uncompromising mood. The image employs a technical brutalism style with deep blacks, stark whites, and subtle hazard magenta accents to ensure clarity in high-stress environments." src="https://lh3.googleusercontent.com/aida-public/AB6AXuB-39wUsw2m8MHLDV4aCEcq3Grl8wxw1H3QtP5Ixr-b0BJmN7QhjHStrmZZvSAOi1x0QIX_0TGf_dC_En98qm_surfLrkHm1tVhaR1Nadt0HJq4jxtxsIKa6YWDe8Hsk0Mey6LwyrOI8fUXHIoY2J9fRMIzTF5hz76Z21j49zVBUVrVmQWbR_EQkYr1fm8t5zH9wM1_PstXGHX3d-NX_sXsPD4U8bMY1hGXR7UhSrzQcOYJcGhzvrtwg2SlhrBG3cKC2rJ_MWW--GnI"/>
+<div class="flex flex-col">
+<span class="font-label-bold text-label-bold uppercase text-on-surface">OPERATOR ALPHA</span>
+<span class="font-label-sm text-label-sm text-secondary tracking-widest">ID: 884-X</span>
+</div>
+</div>
+<div class="status-active font-label-bold text-label-bold uppercase px-stack-sm py-unit border-2 border-transparent">ACTIVE</div>
+</div>
+<!-- Contact Row 2 -->
+<div class="flex items-center justify-between p-stack-md bg-surface-container border-b border-outline-variant hover:bg-surface-variant transition-colors min-h-[72px]">
+<div class="flex items-center gap-stack-md">
+<img alt="Avatar of a female field operative, stark lighting, dark mode aesthetic" class="w-[48px] h-[48px] object-cover grayscale border-2 border-outline" data-alt="A striking portrait of a female field operative, set against an obsidian black background. The lighting is stark and high-contrast, creating an authoritative and vigilant mood. The image employs a technical brutalism style with deep blacks, stark whites, and subtle hazard magenta accents to align with mission-critical UI design, ensuring instant perception under cognitive load." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDQiFcFeN9evMs_0knbDwEesnBwYKYPWvxMsSidxttkwXPyb8FOyh2_wDbCrSJz6bHs-rlN67WOW-ZCGpioc_N_CHUmnmyK0NiFkaGNhAeQ5Z-3MDDKTB44E2miAlALxTl1YtR4--jKRcGeVARYfF-wiyuLkMg6LV5AaH4ZFZV0-O_4q6O4LlQ327-fZvGAqRiP5CZC4IoEPsD6Uw3L2fkELvdk1Lz310ZHxhr-dKA0N1P5smF0WUOSbzviuirzk-kz-ChmM_6DRjwm"/>
+<div class="flex flex-col">
+<span class="font-label-bold text-label-bold uppercase text-on-surface">OPERATOR BRAVO</span>
+<span class="font-label-sm text-label-sm text-secondary tracking-widest">ID: 291-Y</span>
+</div>
+</div>
+<div class="status-standby font-label-bold text-label-bold uppercase px-stack-sm py-unit border-2 border-surface-container">OFFLINE</div>
+</div>
+<!-- Add Contact Button -->
+<button class="w-full h-touch-target-min border-2 border-outline text-on-surface font-label-bold text-label-bold uppercase mt-stack-sm flex items-center justify-center gap-unit hover:bg-surface-variant transition-colors">
+<span class="material-symbols-outlined">add</span>
+                    AUTHORIZE NEW CONTACT
+                </button>
+</section>
+<!-- System Toggles (Bento-style arrangement) -->
+<section class="grid grid-cols-1 md:grid-cols-2 gap-stack-md mt-stack-md">
+<!-- Cloak Mode Toggle Card -->
+<div class="technical-border p-stack-md bg-surface flex flex-col justify-between min-h-[120px]">
+<div class="flex justify-between items-start mb-stack-sm">
+<div class="flex flex-col">
+<span class="font-headline-md text-headline-md uppercase text-on-surface">CLOAK MODE</span>
+<span class="font-label-sm text-label-sm text-secondary uppercase tracking-widest mt-unit">Suppresses telemetry broadcasting</span>
+</div>
+<span class="material-symbols-outlined text-outline-variant" style="font-size: 32px;">visibility_off</span>
+</div>
+<label class="flex items-center justify-between cursor-pointer group mt-auto pt-stack-sm border-t border-outline-variant">
+<span class="font-label-bold text-label-bold uppercase text-secondary group-hover:text-on-surface transition-colors">ENGAGE</span>
+<div class="relative">
+<input class="sr-only tech-toggle-input" type="checkbox"/>
+<div class="tech-toggle-bg block w-14 h-8 bg-surface-container border-2 border-outline-variant transition-colors">
+<div class="tech-toggle-knob absolute left-[2px] top-[2px] w-[26px] h-[24px] bg-outline-variant transition-transform"></div>
+</div>
+</div>
+</label>
+</div>
+<!-- Gesture Trigger Toggle Card -->
+<div class="technical-border p-stack-md bg-surface flex flex-col justify-between min-h-[120px]">
+<div class="flex justify-between items-start mb-stack-sm">
+<div class="flex flex-col">
+<span class="font-headline-md text-headline-md uppercase text-on-surface">GESTURE TRIGGER</span>
+<span class="font-label-sm text-label-sm text-secondary uppercase tracking-widest mt-unit">Rapid kinetic activation</span>
+</div>
+<span class="material-symbols-outlined text-outline-variant" style="font-size: 32px;">waving_hand</span>
+</div>
+<label class="flex items-center justify-between cursor-pointer group mt-auto pt-stack-sm border-t border-outline-variant">
+<span class="font-label-bold text-label-bold uppercase text-secondary group-hover:text-on-surface transition-colors">ENGAGE</span>
+<div class="relative">
+<input checked="" class="sr-only tech-toggle-input" type="checkbox"/>
+<div class="tech-toggle-bg block w-14 h-8 bg-surface-container border-2 border-outline-variant transition-colors">
+<div class="tech-toggle-knob absolute left-[2px] top-[2px] w-[26px] h-[24px] bg-outline-variant transition-transform"></div>
+</div>
+</div>
+</label>
+</div>
+</section>
+<!-- Danger Zone (Emergency Trigger demo context) -->
+<section class="mt-stack-lg pt-stack-lg border-t-4 border-error-container flex flex-col items-center">
+<h3 class="font-label-bold text-label-bold uppercase text-error mb-stack-md w-full text-center tracking-widest">CRITICAL ACTIONS</h3>
+<!-- This represents the oversized trigger concept described in layout -->
+<button class="w-full trigger-bg font-headline-lg text-headline-lg uppercase font-black tracking-tighter min-h-[120px] flex items-center justify-center gap-stack-sm hover:opacity-90 active:scale-[0.98] transition-all">
+<span class="material-symbols-outlined" style="font-size: 48px; font-variation-settings: 'FILL' 1;">warning</span>
+                     INITIATE PROTOCOL
+                 </button>
+<p class="font-label-sm text-label-sm text-secondary mt-stack-sm uppercase text-center w-full">Requires sustained pressure to engage</p>
+</section>
+</div>
+</main>
+<!-- BottomNavBar (Mobile Only) -->
+<nav class="md:hidden bg-background font-label-bold text-label-bold uppercase border-t-2 border-outline-variant flat no shadows fixed bottom-0 left-0 w-full z-50 flex justify-around items-center h-[72px]">
+<button class="flex flex-col items-center text-outline p-4 active:scale-95 transition-transform duration-75 hover:bg-surface-container-highest">
+<span class="material-symbols-outlined">shield</span>
+</button>
+<button class="flex flex-col items-center text-outline p-4 active:scale-95 transition-transform duration-75 hover:bg-surface-container-highest">
+<span class="material-symbols-outlined">location_on</span>
+</button>
+<button class="flex flex-col items-center text-outline p-4 active:scale-95 transition-transform duration-75 hover:bg-surface-container-highest">
+<span class="material-symbols-outlined">history</span>
+</button>
+<button class="flex flex-col items-center bg-primary text-on-primary rounded-none p-4 active:scale-95 transition-transform duration-75 hover:bg-surface-container-highest">
+<span class="material-symbols-outlined">person</span>
+</button>
+</nav>
+</body></html>

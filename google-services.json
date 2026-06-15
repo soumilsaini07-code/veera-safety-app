@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "618689847742",
+    "firebase_url": "https://veera-23327-default-rtdb.asia-southeast1.firebasedatabase.app",
+    "project_id": "veera-23327",
+    "storage_bucket": "veera-23327.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:618689847742:android:e32ce2b30a76c48df919ef",
+        "android_client_info": {
+          "package_name": "com.veera.veera"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "618689847742-ru56t1otecq5t4p8i6l05ngdl3u7bht2.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.veera.veera",
+            "certificate_hash": "c6113d4e2152256ae8d283d14b4c699d064fa40e"
+          }
+        },
+        {
+          "client_id": "618689847742-0sdbl8m162rcvkqp5rtmc0kp4ni7viks.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB7vA2NiwPdfey6-hDRJaIxJfpfXxm29ww"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "618689847742-0sdbl8m162rcvkqp5rtmc0kp4ni7viks.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
