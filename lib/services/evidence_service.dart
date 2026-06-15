@@ -1,8 +1,6 @@
 import 'dart:io';
 import 'dart:async';
 import 'package:camera/camera.dart';
-import 'package:record/record.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:gallery_saver_plus/gallery_saver.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
@@ -10,9 +8,7 @@ import 'package:http/http.dart' as http;
 
 class EvidenceService {
   CameraController? _cameraController;
-  final AudioRecorder _audioRecorder = AudioRecorder();
   
-  String? _audioPath;
   bool _isRecording = false;
   Timer? _chunkTimer;
   
@@ -24,7 +20,8 @@ class EvidenceService {
       final cameras = await availableCameras();
       if (cameras.isNotEmpty) {
         final camera = cameras.firstWhere((c) => c.lensDirection == CameraLensDirection.back, orElse: () => cameras.first);
-        _cameraController = CameraController(camera, ResolutionPreset.medium);
+        // Explicitly enable audio here to include it in the .mp4 file
+        _cameraController = CameraController(camera, ResolutionPreset.medium, enableAudio: true);
         await _cameraController!.initialize();
       }
     } catch (e) {
@@ -43,16 +40,7 @@ class EvidenceService {
     if (!_isRecording) return;
 
     try {
-      // Start Audio
-      if (await _audioRecorder.hasPermission()) {
-        if (!kIsWeb) {
-          final dir = await getTemporaryDirectory();
-          _audioPath = '${dir.path}/evidence_audio_${DateTime.now().millisecondsSinceEpoch}.m4a';
-          await _audioRecorder.start(const RecordConfig(), path: _audioPath!);
-        }
-      }
-
-      // Start Video
+      // Start Video (with built-in audio)
       if (!kIsWeb && _cameraController != null && _cameraController!.value.isInitialized) {
         await _cameraController!.startVideoRecording();
       }
@@ -70,14 +58,6 @@ class EvidenceService {
 
   Future<void> _stopAndUploadChunk() async {
     try {
-      // Stop Audio
-      if (await _audioRecorder.isRecording()) {
-        final audioFile = await _audioRecorder.stop();
-        if (audioFile != null) {
-          _uploadToServer(audioFile, 'audio', 'm4a');
-        }
-      }
-
       // Stop Video
       if (_cameraController != null && _cameraController!.value.isRecordingVideo) {
         final videoFile = await _cameraController!.stopVideoRecording();
@@ -123,12 +103,11 @@ class EvidenceService {
     _isRecording = false;
     _chunkTimer?.cancel();
     await _stopAndUploadChunk();
-    return {'audioUrl': 'Uploaded to EC2', 'videoUrl': 'Uploaded to EC2'};
+    return {'audioUrl': 'Uploaded to EC2 (in video)', 'videoUrl': 'Uploaded to EC2'};
   }
 
   void dispose() {
     _chunkTimer?.cancel();
     _cameraController?.dispose();
-    _audioRecorder.dispose();
   }
 }

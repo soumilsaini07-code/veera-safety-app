@@ -9,6 +9,8 @@
     <style>
         body { background-color: #0d0f12; color: #e2e8f0; font-family: 'Inter', sans-serif; }
         .glass-panel { background: rgba(30, 34, 42, 0.7); backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.05); }
+        .pulse-red { animation: pulseRed 2s infinite; }
+        @keyframes pulseRed { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
     </style>
 </head>
 <body class="p-8">
@@ -18,6 +20,18 @@
             <div id="uid-display" class="text-gray-500 font-mono text-sm"></div>
         </div>
 
+        <!-- Live Feed Player -->
+        <div class="mb-8 p-6 glass-panel rounded-xl border border-gray-800">
+            <h2 class="text-xl font-bold text-red-500 mb-4 tracking-widest uppercase"><i class="fa-solid fa-satellite-dish pulse-red"></i> LIVE SURVEILLANCE FEED (DELAYED)</h2>
+            <div class="aspect-video bg-black rounded overflow-hidden relative">
+                <video id="live-player" autoplay controls class="w-full h-full object-contain"></video>
+                <div id="live-status" class="absolute top-4 left-4 bg-red-600/80 px-3 py-1 rounded text-xs text-white font-mono font-bold tracking-widest uppercase pulse-red"><i class="fa-solid fa-circle text-[8px] mr-1"></i> REC</div>
+            </div>
+            <p class="text-xs text-gray-500 mt-2 font-mono">Stream reconstructs dynamically from latest 3-second EC2 chunks. Audio is embedded directly in the video. Expect ~3-5s latency.</p>
+        </div>
+
+        <!-- Historical Archive -->
+        <h2 class="text-lg font-bold text-gray-300 mb-4 tracking-widest uppercase border-b border-gray-800 pb-2"><i class="fa-solid fa-server"></i> Chunk Archive</h2>
         <div id="gallery" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <div class="text-gray-500">Loading evidence...</div>
         </div>
@@ -27,6 +41,8 @@
         const urlParams = new URLSearchParams(window.location.search);
         const uid = urlParams.get('uid');
         document.getElementById('uid-display').innerText = `USER UID: ${uid}`;
+
+        let lastPlayedUrl = null;
 
         async function fetchEvidence() {
             if (!uid) return;
@@ -38,6 +54,19 @@
                 if (!data.files || data.files.length === 0) {
                     gallery.innerHTML = '<div class="text-gray-500 col-span-full">No evidence files found for this user yet. Data will appear here once an SOS is triggered and chunks are uploaded.</div>';
                     return;
+                }
+
+                // Play newest video in live feed
+                const videos = data.files.filter(f => f.type === 'video');
+                if (videos.length > 0) {
+                    const newest = videos[0].url;
+                    if (newest !== lastPlayedUrl) {
+                        lastPlayedUrl = newest;
+                        const livePlayer = document.getElementById('live-player');
+                        livePlayer.src = newest;
+                        // On some browsers autoplay requires muted, but we have a user interaction already likely
+                        livePlayer.play().catch(e => console.log('Auto-play blocked by browser. User must click play first.'));
+                    }
                 }
 
                 gallery.innerHTML = '';

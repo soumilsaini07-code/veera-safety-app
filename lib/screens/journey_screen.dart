@@ -25,6 +25,7 @@ class _JourneyScreenState extends State<JourneyScreen> {
   final Set<Marker> _markers = {};
   Set<Polyline> _polylines = {};
   List<LatLng> _currentRoute = [];
+  StreamSubscription<Position>? _positionStream;
   
   final JourneyService _journeyService = JourneyService();
   final GeofenceService _geofenceService = GeofenceService();
@@ -45,6 +46,7 @@ class _JourneyScreenState extends State<JourneyScreen> {
 
   @override
   void dispose() {
+    _positionStream?.cancel();
     _etaTimer?.cancel();
     _debounce?.cancel();
     _destinationController.dispose();
@@ -190,6 +192,23 @@ class _JourneyScreenState extends State<JourneyScreen> {
       
       // 3. Start Geofence with Route (200m threshold)
       _geofenceService.startRouteGeofence(route!, 200, _onGeofenceDeviation);
+      
+      _positionStream = Geolocator.getPositionStream().listen((Position position) {
+        if (mounted) {
+          setState(() {
+            _currentPosition = position;
+            _markers.removeWhere((m) => m.markerId == const MarkerId('currentLocation'));
+            _markers.add(
+              Marker(
+                markerId: const MarkerId('currentLocation'),
+                position: LatLng(position.latitude, position.longitude),
+                icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueAzure),
+              ),
+            );
+          });
+        }
+      });
+
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('SAFE ZONE ENGAGED. DEVIATION THRESHOLD 200M.')));
       
       // 4. Start Dead Man's ETA Timer (20 mins demo)
@@ -213,6 +232,7 @@ class _JourneyScreenState extends State<JourneyScreen> {
       await _journeyService.endJourney(_activeJourneyId!);
       _geofenceService.stopGeofence();
       _etaTimer?.cancel();
+      _positionStream?.cancel();
       setState(() {
         _isJourneyActive = false;
         _activeJourneyId = null;
